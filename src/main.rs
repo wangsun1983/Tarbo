@@ -10,12 +10,17 @@ use concurrent::container::ConcurrentQueue;
 use testsuite::testConcurrent::testCondition;
 use testsuite::testConcurrent::testRwlock;
 use testsuite::testCoroutine;
+use testsuite::testNet::testSocket;
+use testsuite::testTime::testCalendar;
+use testsuite::testTime::testDateTime;
 use tokio::runtime::Runtime;
 
 use testsuite::testNet::testSocketMonitor;
 use testsuite::testConcurrent::testCountDownLatch;
 use testsuite::testLang::testSystem;
 use testsuite::testConcurrent::testMutex;
+use testsuite::testConcurrent::testPoolExecutor;
+use testsuite::testConcurrent::testHandler;
 
 mod lang;
 mod concurrent;
@@ -25,6 +30,7 @@ mod tools;
 mod security;
 mod net;
 mod coroutine;
+mod time;
 
 fn main() {
     //testSocketMonitor::test_monitor_1();
@@ -35,5 +41,22 @@ fn main() {
     //testMutex::test_mutex_2();
     //testMutex::test_mutex_timeout_1();
     //testCondition::test_condition_1();
-    testRwlock::test_rwlock_3();
+    //testRwlock::test_rwlock_3();
+    //testRwlock::test_rwlock_timeout_1();
+    //testRwlock::test_rwlock_timeout_2();
+    //testPoolExecutor::test_thread_pool_1();
+    //testPoolExecutor::test_thread_pool_2();
+    //testPoolExecutor::test_thread_pool_3();
+    //testHandler::test_handler_quit_with_looper();
+    //testPoolExecutor::test_schedule_thread_pool_1();
+    //testPoolExecutor::test_schedule_thread_pool_2();
+    //testPoolExecutor::test_priority_thread_pool_1();
+    //testPoolExecutor::test_schedule_thread_pool_3();
+    //testPoolExecutor::test_thread_pool_shutdown_1();
+    //testPoolExecutor::test_priority_thread_pool_shut_down_1();
+    //testPoolExecutor::test_schedule_thread_pool_shut_down();
+    //testSocket::test_connect2();
+    //testSocketMonitor::test_monitor_1();
+    //testDateTime::test_ISO8601();
+    testCalendar::test_case1();
 }

@@ -115,7 +115,7 @@ impl Drop for TarAutoMutex {
 }
 
 #[macro_export]
-macro_rules! Autolock {
+macro_rules! TarAutolock {
     ($x:ident,$y:expr) => {
         let $x = crate::concurrent::mutex::TarAutoMutex::new($y.clone());
     }

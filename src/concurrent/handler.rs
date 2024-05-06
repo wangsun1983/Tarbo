@@ -17,9 +17,10 @@ use crate::lang::system;
 use std::sync::atomic::AtomicU32;
 
 
-pub trait TarProcessMessage {
-    fn handleMessage(&self,msg:TarMessage);
-}
+// pub trait TarProcessMessage {
+//     fn handleMessage(&self,msg:TarMessage);
+// }
+type TarProcessMessage = fn(msg:TarMessage);
 
 //---- Message ----
 pub struct TarMessage {
@@ -28,7 +29,7 @@ pub struct TarMessage {
     pub arg2:i32,
     pub next_time:u64,
     pub next:Option<Rc<RefCell<TarMessage>>>,
-    pub target:Option<Arc<Box<dyn TarProcessMessage>>>,
+    pub target:Option<Arc<Box<TarProcessMessage>>>,
     pub handle_id:u32
 }
 
@@ -59,7 +60,7 @@ impl TarMessage {
         match &self.target {
             None=> {},
             Some(handler) => {
-                handler.handleMessage(
+                handler(
                 TarMessage{
                         what:self.what,
                         arg1:self.arg1,
@@ -296,7 +297,7 @@ impl Looper {
         self.queue.quit();
     }
 }
-pub struct HandlerThread {
+pub struct TarHandlerThread {
     looper:Arc<Looper>,
     //join_handler:Option<JoinHandle<()>>,
     join_handlers:Vec<JoinHandle<()>>,
@@ -309,9 +310,9 @@ struct InternalLooper {
 
 unsafe impl Send for InternalLooper{}
 
-impl HandlerThread {
+impl TarHandlerThread {
     pub fn new()->Self {
-        HandlerThread {
+        TarHandlerThread {
             looper:Arc::new(Looper::new()),
             //join_handler:None,
             join_handlers:Vec::new()
@@ -355,19 +356,19 @@ impl HandlerThread {
     
 }
 
-pub struct Handler {
+pub struct TarHandler {
     looper:Arc<Looper>,
-    processor:Arc<Box<dyn TarProcessMessage>>,
-    self_thread:Option<HandlerThread>,
+    processor:Arc<Box<TarProcessMessage>>,
+    self_thread:Option<TarHandlerThread>,
     id:u32
 }
 
-impl Handler {
-    pub fn new(processor:Box<dyn TarProcessMessage>)->Self {
-        let mut handler_th: HandlerThread = HandlerThread::new();
+impl TarHandler {
+    pub fn new(processor:Box<TarProcessMessage>)->Self {
+        let mut handler_th: TarHandlerThread = TarHandlerThread::new();
         handler_th.start();
         
-        Handler {
+        TarHandler {
             looper:handler_th.get_looper().clone(),
             processor:Arc::new(processor),
             id:handler_th.get_looper().generate_id(),
@@ -375,8 +376,8 @@ impl Handler {
         }
     }
 
-    pub fn new_with_looper(processor:Box<dyn TarProcessMessage>,looper:Arc<Looper>)->Self {
-        Handler {
+    pub fn new_with_looper(processor:Box<TarProcessMessage>,looper:Arc<Looper>)->Self {
+        TarHandler {
             looper:looper.clone(),
             processor:Arc::new(processor),
             self_thread:None,

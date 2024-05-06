@@ -1,14 +1,16 @@
+use std::f32::consts::E;
 use std::ops::{Add, Sub};
 use std::thread::ThreadId;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::mpsc;
 use std::sync::Mutex;
+use std::time::Duration;
 
 use super::condition::TarCondition;
 use super::mutex::TarMutex;
 use crate::lang::system;
-use crate::Autolock;
+use crate::TarAutolock;
 
 pub struct TarWrLock {
     m_core:Arc<Mutex<TarRwLockCore>>,
@@ -36,12 +38,22 @@ impl TarWrLock {
     }
 
     pub fn lock(&self) {
+        self.internal_lock(0);
+    }
+
+    pub fn lock_timeout(&self,interval:u64)->i32 {
+        return self.internal_lock(interval);
+    }
+
+
+    fn internal_lock(&self,interval:u64)->i32 {
         let tid = system::my_tid();
+        let mut ret_result = 0;
         let mut guard = self.m_core.lock().unwrap();
         if let Some(threadid) = guard.m_wr_owner {
             if threadid == tid {
                 guard.m_wr_owner_count += 1;
-                return
+                return -1;
             }
         }
 
@@ -63,17 +75,33 @@ impl TarWrLock {
             while !guard.m_read_owners.is_empty() || guard.m_is_write {
                 drop(guard);
                 let lock = self.m_wr_rx.lock().unwrap();
-                let _ = lock.recv();
+                //let _ = lock.recv();
+                if interval == 0 {
+                    let _ = lock.recv();
+                } else {
+                    let ret = lock.recv_timeout(Duration::from_millis(interval));
+                    match ret {
+                        Ok(_)=>{},
+                        Err(_)=>{
+                            ret_result = -1;
+                        }
+                    }
+                }
                 guard = self.m_core.lock().unwrap();
             }
 
-            guard.m_write_req_count -= 1;
-            guard.m_wr_owner_count += 1;
+            if ret_result == 0 {
+                guard.m_write_req_count -= 1;
+                guard.m_wr_owner_count += 1;
+            } else {
+                return -1;
+            }
             break;
         }
 
         guard.m_is_write = true;
         guard.m_wr_owner = Some(tid);
+        0
     }
 
     pub fn unlock(&self) {
@@ -136,16 +164,34 @@ impl TarRdLock {
     }
 
     pub fn lock(&self) {
+        self.internal_lock(0);
+    }
+
+    pub fn lock_timeout(&self,interval:u64)->i32 {
+        return self.internal_lock(interval);
+    }
+
+    fn internal_lock(&self,interval:u64)->i32 {
         let tid = system::my_tid();
         let mut guard = self.m_core.lock().unwrap();
+
         loop {
             if let Some(owner_tid) = guard.m_wr_owner {
                 if owner_tid != tid && guard.m_wr_owner_count != 0 {
                     guard.m_read_wait_count += 1;
                     drop(guard);
-                    //self.m_read_condition.wait(self.m_mutex.clone());
                     let mut rd_lock = self.m_rd_rx.lock().unwrap();
-                    let _ =  rd_lock.recv();
+                    if interval == 0 {
+                        let _ = rd_lock.recv();
+                    } else {
+                        let ret = rd_lock.recv_timeout(Duration::from_millis(interval));
+                        match ret {
+                            Ok(_)=>{},
+                            Err(_) => {
+                                return -1;
+                            }
+                        }
+                    }
                     guard = self.m_core.lock().unwrap();
                     guard.m_read_wait_count -= 1;
                     continue;
@@ -163,6 +209,7 @@ impl TarRdLock {
                 guard.m_read_owners.insert(tid, 1);
             }
         }
+        0
     }
 
     pub fn unlock(&self) {

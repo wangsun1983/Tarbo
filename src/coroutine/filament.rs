@@ -4,8 +4,11 @@ use std::future::Future;
 use std::sync::Arc;
 use std::cell::RefCell;
 use std::thread;
+use futures::task;
+
 
 use futures::executor::block_on;
+use tokio::task::JoinHandle;
 pub struct Filament {
     runtime:tokio::runtime::Runtime,
 }
@@ -38,13 +41,13 @@ impl Filament {
 
     pub fn wait_closure<F,T>(&self,func:F)->T where
                                 F:Fn()->T + Send + 'static {
-        block_on(async move {
+        self.runtime.block_on(async move {
             func()
         })
     }
 
     pub fn wait_future<F,T>(&self,func:F)->T where F:Future<Output = T>,T:Send {
-        block_on(async {
+        self.runtime.block_on(async {
             (func).await
         })
     }
@@ -67,6 +70,12 @@ impl Filament {
         self.runtime.spawn(async {
             (func).await
         });
+    }
+
+    pub fn spawn<F>(&self, future: F) -> JoinHandle<F::Output> where
+            F: Future + Send + 'static,
+            F::Output: Send + 'static {
+            self.runtime.spawn(future)
     }
 
 }
