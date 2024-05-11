@@ -2,6 +2,7 @@ use crate::io::stream;
 use crate::io::file;
 use crate::io::stream::TarIoStream;
 
+use core::slice;
 use std::fs::File;
 use std::io::Read;
 use std::io;
@@ -43,6 +44,17 @@ impl TarIoStream for TarInputFileStream {
             Err(_) => {}
         }
         false
+    }
+
+    fn read_all(&mut self)-> Vec<u8> {
+        let size = self.file.metadata().unwrap().size();
+        let mut vec_data:Vec<u8> = vec![0;size as usize];
+        let ptr = vec_data.as_mut_ptr();
+        let data: &mut [u8] = unsafe {
+            slice::from_raw_parts_mut(ptr,size as usize)
+        };
+        let _ = self.read(data); 
+        return vec_data;
     }
 }
 
@@ -87,6 +99,10 @@ impl TarIoStream for TarOutputStream {
             Err(_) => {}
         }
         false
+    }
+
+    fn read_all(&mut self)->Vec<u8> {
+        panic!("not support");
     }
 }
 

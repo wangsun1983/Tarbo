@@ -11,6 +11,7 @@ use testsuite::testConcurrent::testCondition;
 use testsuite::testConcurrent::testRwlock;
 use testsuite::testCoroutine;
 use testsuite::testNet::testSocket;
+use testsuite::testSecurity;
 use testsuite::testTime::testCalendar;
 use testsuite::testTime::testDateTime;
 use tokio::runtime::Runtime;
@@ -21,6 +22,7 @@ use testsuite::testLang::testSystem;
 use testsuite::testConcurrent::testMutex;
 use testsuite::testConcurrent::testPoolExecutor;
 use testsuite::testConcurrent::testHandler;
+use testsuite::testProcess;
 
 mod lang;
 mod concurrent;
@@ -31,6 +33,7 @@ mod security;
 mod net;
 mod coroutine;
 mod time;
+mod process;
 
 fn main() {
     //testSocketMonitor::test_monitor_1();
@@ -58,5 +61,14 @@ fn main() {
     //testSocket::test_connect2();
     //testSocketMonitor::test_monitor_1();
     //testDateTime::test_ISO8601();
-    testCalendar::test_case1();
+    //testCalendar::test_case1();
+    //testSecurity::testSha::test_case1();
+    //testSecurity::testSha::test_case2();
+    //testSecurity::testMd::test_case1();
+    //testSecurity::testAes::test_case1();
+    //testSecurity::testCrc::do_crc32_test2();
+    //testSecurity::testCrc::do_crc64_test3();
+    //testSecurity::testRsa::do_test1();
+    //testSecurity::testBase64::do_test1();
+    testProcess::testShm::do_test1();
 }
