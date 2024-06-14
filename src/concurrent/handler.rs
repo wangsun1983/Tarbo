@@ -247,14 +247,14 @@ impl TarMessageQueue {
 }
 
 //dff
-pub struct Looper {
+pub struct TarLooper {
     queue:TarMessageQueue,
     id:Mutex<u32>,
 }
 
-impl Looper {
+impl TarLooper {
     fn new()->Self {
-        Looper {
+        TarLooper {
             queue:TarMessageQueue::new(),
             id:Mutex::new(0),
         }
@@ -298,14 +298,14 @@ impl Looper {
     }
 }
 pub struct TarHandlerThread {
-    looper:Arc<Looper>,
+    looper:Arc<TarLooper>,
     //join_handler:Option<JoinHandle<()>>,
     join_handlers:Vec<JoinHandle<()>>,
 }
 
 
 struct InternalLooper {
-    looper:Arc<Looper>
+    looper:Arc<TarLooper>
 }
 
 unsafe impl Send for InternalLooper{}
@@ -313,7 +313,7 @@ unsafe impl Send for InternalLooper{}
 impl TarHandlerThread {
     pub fn new()->Self {
         TarHandlerThread {
-            looper:Arc::new(Looper::new()),
+            looper:Arc::new(TarLooper::new()),
             //join_handler:None,
             join_handlers:Vec::new()
         }
@@ -334,7 +334,7 @@ impl TarHandlerThread {
         self.join_handlers.push(join_handler);
     }
 
-    pub fn get_looper(&self)->Arc<Looper> {
+    pub fn get_looper(&self)->Arc<TarLooper> {
         self.looper.clone()
     }
 
@@ -357,7 +357,7 @@ impl TarHandlerThread {
 }
 
 pub struct TarHandler {
-    looper:Arc<Looper>,
+    looper:Arc<TarLooper>,
     processor:Arc<Box<TarProcessMessage>>,
     self_thread:Option<TarHandlerThread>,
     id:u32
@@ -376,7 +376,7 @@ impl TarHandler {
         }
     }
 
-    pub fn new_with_looper(processor:Box<TarProcessMessage>,looper:Arc<Looper>)->Self {
+    pub fn new_with_looper(processor:Box<TarProcessMessage>,looper:Arc<TarLooper>)->Self {
         TarHandler {
             looper:looper.clone(),
             processor:Arc::new(processor),

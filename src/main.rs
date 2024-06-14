@@ -1,29 +1,3 @@
-use std::sync::Arc;
-use std::sync::Mutex;
-use std::rc::Rc;
-use std::thread;
-use std::thread::JoinHandle;
-use std::time::Duration;
-use std::u32;
-
-use concurrent::container::ConcurrentQueue;
-use testsuite::testConcurrent::testCondition;
-use testsuite::testConcurrent::testRwlock;
-use testsuite::testCoroutine;
-use testsuite::testNet::testSocket;
-use testsuite::testSecurity;
-use testsuite::testTime::testCalendar;
-use testsuite::testTime::testDateTime;
-use tokio::runtime::Runtime;
-
-use testsuite::testNet::testSocketMonitor;
-use testsuite::testConcurrent::testCountDownLatch;
-use testsuite::testLang::testSystem;
-use testsuite::testConcurrent::testMutex;
-use testsuite::testConcurrent::testPoolExecutor;
-use testsuite::testConcurrent::testHandler;
-use testsuite::testProcess;
-
 mod lang;
 mod concurrent;
 mod io;
@@ -34,41 +8,18 @@ mod net;
 mod coroutine;
 mod time;
 mod process;
+mod chatroom;
+
+use crate::chatroom::entry;
 
 fn main() {
-    //testSocketMonitor::test_monitor_1();
-    //testCoroutine::testFilament::testFilament_1();
-    //testCountDownLatch::do_test1();
-    //testSystem::test_tid_1();
-    //testMutex::test_mutex_1();
-    //testMutex::test_mutex_2();
-    //testMutex::test_mutex_timeout_1();
-    //testCondition::test_condition_1();
-    //testRwlock::test_rwlock_3();
-    //testRwlock::test_rwlock_timeout_1();
-    //testRwlock::test_rwlock_timeout_2();
-    //testPoolExecutor::test_thread_pool_1();
-    //testPoolExecutor::test_thread_pool_2();
-    //testPoolExecutor::test_thread_pool_3();
-    //testHandler::test_handler_quit_with_looper();
-    //testPoolExecutor::test_schedule_thread_pool_1();
-    //testPoolExecutor::test_schedule_thread_pool_2();
-    //testPoolExecutor::test_priority_thread_pool_1();
-    //testPoolExecutor::test_schedule_thread_pool_3();
-    //testPoolExecutor::test_thread_pool_shutdown_1();
-    //testPoolExecutor::test_priority_thread_pool_shut_down_1();
-    //testPoolExecutor::test_schedule_thread_pool_shut_down();
-    //testSocket::test_connect2();
-    //testSocketMonitor::test_monitor_1();
-    //testDateTime::test_ISO8601();
-    //testCalendar::test_case1();
-    //testSecurity::testSha::test_case1();
-    //testSecurity::testSha::test_case2();
-    //testSecurity::testMd::test_case1();
-    //testSecurity::testAes::test_case1();
-    //testSecurity::testCrc::do_crc32_test2();
-    //testSecurity::testCrc::do_crc64_test3();
-    //testSecurity::testRsa::do_test1();
-    //testSecurity::testBase64::do_test1();
-    testProcess::testShm::do_test1();
+    //for arg in std::env::args() {
+    //    println!("arg is {}",arg);
+    //}
+    
+    //chatroom::test::test_util_log::test_log();
+
+    let args:Vec<String> = std::env::args().collect();
+    let chat_type:u32 = args.get(1).unwrap().parse().unwrap();
+    entry::chat_room_entry(chat_type);
 }

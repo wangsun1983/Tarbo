@@ -169,4 +169,8 @@ impl TarFile {
 
         None
     }
+
+    pub fn create_dirs(&self) {
+        fs::create_dir_all(&self.path);
+    }
 }

@@ -46,7 +46,7 @@ impl Filament {
         })
     }
 
-    pub fn wait_future<F,T>(&self,func:F)->T where F:Future<Output = T>,T:Send {
+    pub fn wait_future<F,T>(&self,func:F)->T where F:Future<Output = T> + Send,T:Send {
         self.runtime.block_on(async {
             (func).await
         })

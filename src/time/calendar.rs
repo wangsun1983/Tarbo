@@ -105,6 +105,10 @@ impl TarCalendar {
         }
     }
 
+    pub fn get_date_time(&self)->&TarDateTime {
+        return &self.m_date_time;
+    }
+
     pub fn add(&mut self,field:Field,value:i32) {
         match field {
             Field::Year => {

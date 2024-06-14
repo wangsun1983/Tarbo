@@ -60,29 +60,29 @@ impl TarIoStream for TarInputFileStream {
 
 
 //---- TOutputFileStream ----
-pub struct TarOutputStream {
+pub struct TarFileOutputStream {
     file:File,
 }
 
-impl TarOutputStream {
+impl TarFileOutputStream {
     pub fn new_append_stream(file:&TarFile)->Self {
         let f = OpenOptions::new()
                                     .append(true)
                                     .open(file.get_absolute_patch().unwrap()).unwrap();
-        TarOutputStream {
+        TarFileOutputStream {
             file:f,
         }
     }
 
     pub fn new_truncate_stream(file:&TarFile)->Self {
         let f = std::fs::File::create(file.get_absolute_patch().unwrap()).unwrap();
-        TarOutputStream {
+        TarFileOutputStream {
             file:f,
         }
     }
 }
 
-impl TarIoStream for TarOutputStream {
+impl TarIoStream for TarFileOutputStream {
     fn read(&mut self,_:&mut [u8])-> io::Result<usize> {
         Err(std::io::Error::new(std::io::ErrorKind::Unsupported, "unsupport method"))
     }

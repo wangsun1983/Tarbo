@@ -1,7 +1,7 @@
 use crate::io::filestream::TarInputFileStream;
 use crate::io::file::TarFile;
 use crate::io::stream::TarIoStream;
-use crate::io::filestream::TarOutputStream;
+use crate::io::filestream::TarFileOutputStream;
 
 use openssl::aes::AesKey;
 use openssl::symm::{self, Cipher};
@@ -48,7 +48,7 @@ enum TarTransformerPattern {
 impl TarTransformer {
     pub fn gen_key(key_data:&[u8],path:String) {
         let len = key_data.len();
-        let mut out_stream = TarOutputStream::new_truncate_stream(&TarFile::new(path));
+        let mut out_stream = TarFileOutputStream::new_truncate_stream(&TarFile::new(path));
         if len != 16 {
             if key_data.len() > 16 {
                 let _ = out_stream.write(&key_data[0..16]);

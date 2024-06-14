@@ -16,7 +16,7 @@ pub enum Event {
 }
 
 pub trait TarListener {
-    fn on_event(&self,event:Event,data:Option<Vec<u8>>,sock:Arc<TarSocket>);
+    fn on_event(&mut self,event:Event,data:Option<Vec<u8>>,sock:Arc<TarSocket>);
 }
 
 pub struct TarSocketMonitor {
@@ -31,7 +31,8 @@ impl TarSocketMonitor {
 
     }
 
-    pub fn bind_as_client(&self,sock:Arc<TarSocket>,listener:Box<dyn TarListener + Send + Sync>) {
+
+    pub fn bind_as_client(&self,sock:Arc<TarSocket>,mut listener:Box<dyn TarListener + Send + Sync>) {
         self.fila.spawn(async move {
             let input_stream = sock.get_input_stream();
             
@@ -39,7 +40,12 @@ impl TarSocketMonitor {
                 let read_result = input_stream.read_async().await;
                 match read_result {
                     Some(data)=> {
-                        listener.on_event(Event::Message,Some(data),sock.clone());
+                        if data.len() == 0 {
+                            listener.on_event(Event::Disconnect,None,sock.clone());
+                            return;
+                        } else {
+                            listener.on_event(Event::Message,Some(data),sock.clone());
+                        }
                     },
                     None => {
                         listener.on_event(Event::Disconnect,None,sock.clone());
@@ -50,32 +56,52 @@ impl TarSocketMonitor {
         });
     }
 
-    pub fn bind_as_server(&self,sock:Arc<TarSocket>,listener:Box<dyn TarListener+Send+Sync>) {
+    pub fn bind_as_server(&self,sock:Arc<TarSocket>,callback:Box<dyn TarListener+Send+Sync>) {
         let fila_closure = self.fila.clone();
+        let listener = Arc::new(tokio::sync::Mutex::new(callback));
+        let listener_closure1: Arc<tokio::sync::Mutex<Box<dyn TarListener + Send + Sync>>> = listener.clone();
         self.fila.clone().spawn(async move {
-            let accept_result = sock.accept_async().await;
-            match accept_result {
-                Some(tcp_stream) => {
-                    let client = Arc::new(tcp_stream);
-                    listener.on_event(Event::NewClient, None, client.clone());
-                    let input_stream = client.get_input_stream();
-                    fila_closure.spawn(async move {
-                        loop {
-                            let read_result = input_stream.read_async().await;
-                            match read_result {
-                                Some(data)=> {
-                                    listener.on_event(Event::Message,Some(data),client.clone());
-                                },
-                                None => {
-                                    listener.on_event(Event::Disconnect,None,client.clone());
-                                    return;
+            loop {
+                let accept_result = sock.bind_accept_async().await;
+                match accept_result {
+                    Some(tcp_stream) => {
+                        let client = Arc::new(tcp_stream);
+                        {
+                            let mut lock = listener_closure1.lock().await;
+                            lock.on_event(Event::NewClient, None, client.clone());
+                        }
+                        let input_stream = client.get_input_stream();
+                        let listener_closure2 = listener_closure1.clone();
+                        fila_closure.spawn(async move {
+                            loop {
+                                let read_result = input_stream.read_async().await;
+                                match read_result {
+                                    Some(data)=> {
+                                        {
+                                            
+                                            let mut lock = listener_closure2.lock().await;
+                                            if data.len() == 0 {
+                                                lock.on_event(Event::Disconnect,None,client.clone());
+                                                return; 
+                                            } else {
+                                                lock.on_event(Event::Message,Some(data),client.clone());
+                                            }
+                                        }
+                                    },
+                                    None => {
+                                        {
+                                            let mut lock = listener_closure2.lock().await;
+                                            lock.on_event(Event::Disconnect,None,client.clone());
+                                        }
+                                        return;
+                                    }
                                 }
                             }
-                        }
-                    });
-                },
-                None=> {
-                    return;
+                        });
+                    },
+                    None=> {
+                        return;
+                    }
                 }
             }
         });

@@ -1,5 +1,5 @@
 use openssl::{pkey::Private,pkey::Public, rsa::{Padding, Rsa}};
-use crate::io::filestream::{TarInputFileStream,TarOutputStream};
+use crate::io::filestream::{TarInputFileStream,TarFileOutputStream};
 use crate::io::file::TarFile;
 use crate::io::stream::TarIoStream;
 
@@ -40,11 +40,11 @@ impl TarTransformer {
         let priv_key = rsa.private_key_to_pem().unwrap();
         //write to file
         let priv_file = String::from(&dir) + "/id_rsa";
-        let mut priv_out_stream = TarOutputStream::new_truncate_stream(&TarFile::new(priv_file));
+        let mut priv_out_stream: TarFileOutputStream = TarFileOutputStream::new_truncate_stream(&TarFile::new(priv_file));
         priv_out_stream.write(&priv_key);
 
         let pub_file = String::from(&dir) + "/id_rsa.pub";
-        let mut pub_out_stream = TarOutputStream::new_truncate_stream(&TarFile::new(pub_file));
+        let mut pub_out_stream = TarFileOutputStream::new_truncate_stream(&TarFile::new(pub_file));
         pub_out_stream.write(&pub_key);
     }
 

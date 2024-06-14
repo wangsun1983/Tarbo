@@ -53,14 +53,14 @@ impl <T> TarBlockingQueue<T> {
     }
 }
 
-//--- ConcurrentQueue ---
-pub struct ConcurrentQueue<T> {
+//--- TarConcurrentQueue ---
+pub struct TarConcurrentQueue<T> {
     mutex:Mutex<LinkedList<T>>,
 }
 
-impl <T> ConcurrentQueue<T> {
+impl <T> TarConcurrentQueue<T> {
     pub fn new()->Self {
-        ConcurrentQueue {
+        TarConcurrentQueue {
             mutex:Mutex::new(LinkedList::new()),
         }
     }

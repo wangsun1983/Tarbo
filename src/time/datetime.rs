@@ -710,7 +710,6 @@ impl TarDateTime {
             if str_slice[start] == ASSIIC_PERCENT {
                 start += 1;
                 let t = str_slice[start].to_string();
-                println!("str_slice[start] is {}",t);
                 match str_slice[start] {
                     ASSIIC_W => {
                         let day_of_week = super::calendar::TarCalendar::day_of_week(self.m_year, self.m_month, self.m_day);

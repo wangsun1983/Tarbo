@@ -1,7 +1,7 @@
 //---- ByteRingArray ----
 pub struct TarByteRingArray {
     next:usize,
-    data:[u8;1024*4],
+    data:[u8;1024*32],
     size:usize,
     capacity:usize
 }
@@ -10,13 +10,13 @@ impl TarByteRingArray {
     pub fn new()->TarByteRingArray {
         TarByteRingArray {
             next:0,
-            data:[0;1024*4],
+            data:[0;1024*32],
             size:0,
-            capacity:1024*4
+            capacity:1024*32
         }
     }
 
-    pub fn push(&mut self,data:&mut [u8])->Result<u32,u32> {
+    pub fn push(&mut self,data:&[u8])->Result<u32,u32> {
         if data.len() > self.capacity - self.size {
             return Err(0);
         }
@@ -60,11 +60,11 @@ impl TarByteRingArray {
         }
 
         let mut value:u32 = 0;
+        let mut start = self.getStartIndex();
         for i in 0..4 {
-            value = (self.data[self.next] as u32) << i;
-            self.next = (self.next + 1)%self.capacity;
+            value |= (self.data[start] as u32) << i;
+            start = (start + 1)%self.capacity;
         }
-        self.next = self.next + 4;
         self.size = self.size - 4;
         Ok(value)
     }

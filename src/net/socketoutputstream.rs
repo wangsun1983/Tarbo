@@ -36,4 +36,9 @@ impl TarSocketOutputStream {
         return None;
     }
 
+    pub async fn close_async(&self) {
+        let mut lock = self.m_stream.lock().await;
+        lock.shutdown().await;
+    }
+
 }
